@@ -242,6 +242,7 @@ class SpeechDataLoader(DataLoader):
     def _batch_sampler(self):
         if self.training:
             for i in range(math.floor(self.dataset_size / self._batch_size)):
+                # the remainder is droped.
                 ind = np.arange(self._batch_size).reshape(
                     self._batch_size, 1) + i * self._batch_size
                 if self.fixed_len > 0:
@@ -306,11 +307,9 @@ def data_loader_debugging(utt2npy, utt2target=None, targets_list=None,
     dataset_size = data_loader.__len__()
     print('dataset_size: ', dataset_size)
 
-    n_batches = int(dataset_size / batch_size)
-    print("n_batches: ", n_batches)
-
     start = time.process_time()
 
+    count = 0
     for i, batch in enumerate(data_loader):
         if padding_batch:
             for k, v in batch.items():
@@ -319,9 +318,10 @@ def data_loader_debugging(utt2npy, utt2target=None, targets_list=None,
         else:
             print(batch[0])
             print(batch[1])
-        if i + 1 == 10:
+        count = i + 1
+        if count == 10:
             break
-    print("got n_batches: ", i + 1)
+    print("got n_batches: ", count)
     print("time elapsed: ", time.process_time() - start)
 
 
@@ -333,10 +333,10 @@ if __name__ == "__main__":
     phones_list = '../data/phones.list.txt'
 
     # In the training stage, generate mini-batches data.
-    data_loader_debugging(utt2npy, utt2lang, targets_list=languages, batch_size=64,
+    data_loader_debugging(utt2npy, utt2lang, targets_list=languages, batch_size=6,
                       fixed_len=0, num_workers=4, training=True)
     print('-----' * 20)
-    data_loader_debugging(utt2npy, utt2lang, languages, batch_size=64,
+    data_loader_debugging(utt2npy, utt2lang, languages, batch_size=6,
                       fixed_len=300, num_workers=4, training=True)
     print('-----' * 20)
 
@@ -345,7 +345,7 @@ if __name__ == "__main__":
                       num_workers=4, training=False)
     print('-----' * 20)
 
-    data_loader_debugging(utt2npy, utt2lang, languages, batch_size=64,
+    data_loader_debugging(utt2npy, utt2lang, languages, batch_size=6,
                           utt2label_seq=utt2phone_seq, labels_list=phones_list,
                           num_workers=1, training=True, padding_batch=True)
 

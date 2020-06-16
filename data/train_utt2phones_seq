@@ -1,0 +1,20 @@
+changsha_train_speaker15_200	<s> d uen1 h uang2 m o4 g ao1 k u1 p iao4 l iang4 b a1 </s>
+changsha_train_speaker30_200	<s> _i iou3 _i i4 zh ong3 x ing4 f u2 </s>
+hebei_train_speaker15_200	<s> ch a2 k an4 sh iii2 j ing3 l in2 sh ou3 j i1 h ao2 </s>
+hebei_train_speaker30_200	<s> _u uo3 b a3 l ou2 sh ang4 l ou2 x ia4 s ao3 l e4 _i i1 b ian4 </s>
+hefei_train_speaker15_200	<s> x in1 n ian2 t a4 zh ao2 x in1 x ian1 d e4 l u4 zh u1 l ai2 l e4 </s>
+hefei_train_speaker30_200	<s> d ong3 x iao3 _u uan3 </s>
+kejia_train_speaker15_200	<s> h ao3 j ie3 m ei4 m k uei4 h ai4 h ao3 j ie3 m ei4 _i iou1 </s>
+kejia_train_speaker30_200	<s> zh iii1 h ai4 b i3 j iao4 ch eng2 sh u2 _i i1 d ian3 _e er2 _i i3 l a1 </s>
+minnan_train_speaker15_200	<s> t ong2 x ve2 p eng2 _i iou3 </s>
+minnan_train_speaker30_200	<s> x v3 _v van2 h ao4 d e4 d ian4 h ua4 h ao4 m a3 sh iii4 d uo1 sh ao3 </s>
+nanchang_train_speaker15_200	<s> h ao3 n i3 ch iii1 b a1 _u uo3 m a3 sh ang4 d ao4 j ia1 l e4 </s>
+nanchang_train_speaker30_200	<s> _e e1 m i2 t uo2 f o2 _u uei2 j i2 l e4 sh iii4 j ie4 zh iii1 j iao4 zh u3 </s>
+ningxia_train_speaker15_200	<s> t ong2 sh iii2 h ai2 sh iii4 z ai4 ch uang4 z ao4 _i i2 g e4 z ii4 j i3 d e4 ch uan2 q i2 m ao4 x ian3 </s>
+ningxia_train_speaker30_200	<s> z uei4 x i3 h uan1 ch iii1 l ao3 m a1 z uo4 d e4 l a4 z ii3 j i1 h uo3 g uo1 l e4 j iou4 _i i2 g e4 z ii4 x iang1 x iang1 x iang1 x iang1 </s>
+shan3xi_train_speaker15_200	<s> z uei4 x in1 r e4 d ian3 sh iii4 j ian4 </s>
+shan3xi_train_speaker30_200	<s> q i1 sh iii2 _i i1 k uai4 q i1 m ao2 b a1 f en1 </s>
+shanghai_train_speaker15_200	<s> n ong2 _i iao4 l a4 sh ang4 h ai3 zh u4 d uo1 sh ao3 ch en2 g uang1 </s>
+shanghai_train_speaker30_200	<s> _i in1 _u uei2 m ian4 q ian2 g e4 z uo4 c ii4 _a an1 p ai2 d e2 d ang4 </s>
+sichuan_train_speaker15_200	<s> _i i4 zh iii2 j ve2 d e4 z ii4 j i3 c uo4 g uo4 l e4 t ai4 d uo1 t ai4 d uo1 </s>
+sichuan_train_speaker30_200	<s> j iou3 q ian1 b a1 b ai3 l iou4 sh iii2 l iou4 _v van2 j iou3 f en1 _e er2 </s>

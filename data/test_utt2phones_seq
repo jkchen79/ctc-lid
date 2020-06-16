@@ -1,0 +1,20 @@
+changsha_test_speaker33_050	<s> zh e4 b u2 sh iii4 r en2 j ia1 ch ang3 sh ang1 _i iao4 d ong4 _i iong4 f a3 l v4 zh iii4 z ai1 _u uo3 l e4 m a2 </s>
+changsha_test_speaker35_100	<s> k an4 b u2 j ian4 d e4 h uei2 _i i4 </s>
+hebei_test_speaker33_050	<s> _i iao1 _u u3 l ing2 l ing2 s an1 j iou3 _e er4 _u u3 l ing2 l iou4 l ing2 </s>
+hebei_test_speaker35_100	<s> b a1 b ai3 d ian3 j iou3 l iou4 _v van2 </s>
+hefei_test_speaker33_050	<s> ch en2 _i ian2 x i1 _i ian3 d e4 x iao3 l ong2 n v3 m ei2 _i iou3 r uo4 t ong2 b an3 d e4 n a4 zh ong3 b ing1 q ing1 _v v4 j ie2 d e4 g an3 j ve2 </s>
+hefei_test_speaker35_100	<s> _u u3 b ai3 s ii4 sh iii2 _v van2 _u u3 f en1 </s>
+kejia_test_speaker33_050	<s> j ia1 zh ang3 x ve2 sh eng1 </s>
+kejia_test_speaker35_100	<s> j iou3 _u uan4 s an1 q ian1 l iang3 b ai3 _i i1 sh iii2 _e er4 _v van2 j iou3 f en1 </s>
+minnan_test_speaker33_050	<s> l ao3 sh iii1 z ai4 b u4 zh iii4 z uo4 _i ie4 n i3 zh u4 _i i4 t ing1 l e4 m ei2 _i iou3 </s>
+minnan_test_speaker35_100	<s> q iou2 b u4 d e2 f ang4 b u2 x ia4 </s>
+nanchang_test_speaker33_050	<s> t a1 m en4 p ing2 sh iii2 d e4 b iao3 x ian4 j i1 b en3 sh ang4 j iou4 x iang4 sh iii4 _i i2 d uei4 _e er2 </s>
+nanchang_test_speaker35_100	<s> x in1 l ao3 sh iii1 _i iou3 g an3 _e er2 f a1 d e4 p ing2 l uen4 </s>
+ningxia_test_speaker33_050	<s> q i1 _u uan4 _u u3 q ian1 k uai4 q i1 j iao3 _u u3 f en1 </s>
+ningxia_test_speaker35_100	<s> s an1 s ii4 _i iao1 _i iao1 b a1 _i iao1 _i iao1 j iou3 b a1 b a1 l ing2 l iou4 l ing2 _e er4 l iou4 l iou4 _e er4 _i iao1 </s>
+shan3xi_test_speaker33_050	<s> _i iao1 s an1 b a1 l iou4 _i iao1 l ing2 s ii4 _u u3 s an1 l iou4 j iou3 </s>
+shan3xi_test_speaker35_100	<s> x iang4 _a ai4 _i i2 _i iang4 </s>
+shanghai_test_speaker33_050	<s> _v van2 x iao1 j ie2 _i i1 q ian1 k uai4 g e4 h ua4 f ei4 d a4 p ai4 s ong4 _u uo3 x ian1 zh uan3 l e4 </s>
+shanghai_test_speaker35_100	<s> _a a1 l a1 x ia4 t ang1 z ai4 p eng4 t ou2 f a2 </s>
+sichuan_test_speaker33_050	<s> n an2 r en2 b ian4 x in1 _u uang3 h ua1 l i3 b ian4 n v3 r en2 b ian4 x in1 _u uang3 h en3 l i3 b ian4 </s>
+sichuan_test_speaker35_100	<s> zh iii3 _i iao4 t a1 g an3 j ve2 d e2 d ao4 zh u3 r en2 d e4 sh uang1 sh ou3 </s>

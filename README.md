@@ -1,6 +1,6 @@
 # ctc-lid
 
-An CTC-training based model for language identification.
+A CTC-training based model for language identification.
 --
 
 对于语种识别任务，可以用语音和音素序列标注先训练一个CTC对齐的音素解码模型，然后调整模型结构，进行语种识别的fine-tuning训练。对比直接采用声学特征去训练语种识别的系统，有明显的性能提升。

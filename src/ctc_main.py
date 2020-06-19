@@ -110,11 +110,12 @@ def evaluate(config, logger):
 
 def setup_optimizer(model, optimizer_name, learning_rate):
     optimizer = None
+    trainable_parameters = filter(lambda p: p.requires_grad, model.parameters())
     if optimizer_name == "sgd":
-        optimizer = torch.optim.SGD(model.parameters(), 
+        optimizer = torch.optim.SGD(trainable_parameters, 
                         lr=learning_rate, momentum=0.9, weight_decay=1e-4)
     elif optimizer_name == "adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        optimizer = torch.optim.Adam(trainable_parameters, lr=learning_rate)
     else:
         raise ValueError
     return optimizer
@@ -164,7 +165,7 @@ def train_epochs(model, config, pretrain_ctc_model=False):
                                        padding_batch=config.padding_batch
                                        )
 
-        dataset_size = training_dataloader.__len__() / config.batch_size
+        num_batchs = training_dataloader.get_dataset_size() / config.batch_size
 
         total_ctc_loss = 0
         for i, batch_data in enumerate(training_dataloader):
@@ -185,24 +186,24 @@ def train_epochs(model, config, pretrain_ctc_model=False):
                 loss = ctc_loss
                 total_ctc_loss += ctc_loss
                 logger.info("Epoch [%d/%d], Iter [%d/%d], CTCLoss %.4f, Length [%d]" %
-                       (epoch, num_epochs, i, dataset_size, ctc_loss.data, feats.size()[1]))
+                       (epoch, num_epochs, i, num_batchs, ctc_loss.data, feats.size()[1]))
             else:
                 #  loss, l1, l2 = model.compute_loss(lid_logits, lengths,
                 loss, l1, l2 = model.module.compute_loss(lid_logits, lengths,
                     lid_targets, ctc_logits, label_seqs, label_seq_lengths, pretrain_ctc_model)
                 total_ctc_loss += l1
                 logger.info("Epoch [%d/%d], Iter [%d/%d], Loss: %.4f, CTCLoss %.4f, "
-                        "LIDLoss: %.4f, Length [%d]" % (epoch, num_epochs, i, dataset_size, 
+                        "LIDLoss: %.4f, Length [%d]" % (epoch, num_epochs, i, num_batchs, 
                                                 loss.data, l1.data, l2.data, feats.size()[1]))
             loss.backward()
             optimizer.step()
 
         if pretrain_ctc_model:
-            avg_ctc_loss = total_ctc_loss / dataset_size
+            avg_ctc_loss = total_ctc_loss / num_batchs
             logger.info("Epoch [%d/%d], CTC avg_ctc_loss = %.6f" % (epoch, num_epochs, avg_ctc_loss))
             ckpt_path = "%s/ckpt-pretrain-ctc-model-epoch-%d-avg-ctc-loss-%.6f.mdl" % (config.ckpt_dir, epoch, avg_ctc_loss)
         else:
-            acc, _ = do_evaluation(model, dev_dataloader)
+            acc, _ = do_evaluation(model, dev_dataloader, logger)
             logger.info("Epoch [%d/%d], dev acc = %.6f" % (epoch, num_epochs, acc))
             ckpt_path = "%s/ckpt-epoch-%d-acc-%.4f.mdl" % (config.ckpt_dir, epoch, acc)
         torch.save(model.state_dict(), ckpt_path)
@@ -212,6 +213,14 @@ def train(config, logger):
     torch.manual_seed(997)
 
     model = CTC_LID_Model(config)
+
+    if config.restore_from_ckpt:
+        ckpt_params = OrderedDict()
+        for k, v in torch.load(config.ckpt).items():
+            k = re.sub("^module.", "", k)
+            ckpt_params[k] = v
+        model.load_state_dict(ckpt_params)
+
     model = nn.DataParallel(model)
     model = model.cuda()
     logger.info("nnet model:")
@@ -220,7 +229,14 @@ def train(config, logger):
     mkdir(config.ckpt_dir)
 
     # pre-train the CTC model 
-    train_epochs(model, config, config.pretrain_ctc_model)
+    if config.pretrain_ctc_model:
+        train_epochs(model, config, config.pretrain_ctc_model)
+
+    if config.freeze_parameters:
+        for name, param in model.named_parameters():
+            if "lstm_layers" in name or "ffn_layers" in name:
+                logger.info("freeze parameter: %s, size of %s" % (name, str(param.size())))
+                param.requires_grad = False
 
     # fine-tune
     train_epochs(model, config)

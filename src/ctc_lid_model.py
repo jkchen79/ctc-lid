@@ -34,17 +34,21 @@ class CTC_LID_Model(nn.Module):
                                    bidirectional=config.bidirectional
                                    )
         self.lstm_layers.flatten_parameters()
+
         lstm_output_size = self.hidden_size
         if config.bidirectional:
             lstm_output_size *= 2
+        
+        self.dropout = nn.Dropout(p=config.dropout_rate)
 
-        self.linear_layers_for_ctc = nn.Sequential()
-        self.linear_layers_for_ctc.add_module('linear1', nn.Linear(lstm_output_size, self.bn_size))
-        self.linear_layers_for_ctc.add_module('linear2', nn.Linear(self.bn_size, self.num_ctc_classes))
+        # feed forward layers for bottleneck feature
+        self.ffn_layers = nn.Sequential()
+        self.ffn_layers.add_module('linear_layer_0', nn.Linear(lstm_output_size, self.bn_size))
+        self.ffn_layers.add_module('prelu', nn.PReLU())
+        self.ffn_layers.add_module('linear_layer_1', nn.Linear(self.bn_size, self.bn_size))
 
-        self.linear_layers_for_lid = nn.Sequential()
-        self.linear_layers_for_lid.add_module('linear3', nn.Linear(lstm_output_size, self.bn_size))
-        self.linear_layers_for_lid.add_module('linear4', nn.Linear(self.bn_size, self.output_size))
+        self.output_layer_for_ctc = nn.Linear(self.bn_size, self.num_ctc_classes)
+        self.output_layer_for_lid = nn.Linear(self.bn_size, self.output_size)
 
         self.model = None
         self.use_cuda = use_cuda
@@ -54,12 +58,17 @@ class CTC_LID_Model(nn.Module):
 
         lstm_output, last_hidden_status = self.lstm_layers(feats)
 
+        if self.config.do_train:
+            lstm_output = self.dropout(lstm_output)
+
+        bn_embd = self.ffn_layers(lstm_output)
+
         if self.config.do_train or self.config.pretrain_ctc_model:
-            ctc_logits = self.linear_layers_for_ctc(lstm_output) 
+            ctc_logits = self.output_layer_for_ctc(bn_embd) 
         else:
             ctc_logits = None
 
-        lid_logits = self.linear_layers_for_lid(lstm_output)
+        lid_logits = self.output_layer_for_lid(bn_embd)
         mask = mask.contiguous().view(batch_size, length, -1).expand(batch_size, length, lid_logits.size(2))
         lid_logits = lid_logits * mask
         lid_logits = lid_logits.sum(dim=1) / mask.sum(dim=1)
@@ -75,12 +84,13 @@ class CTC_LID_Model(nn.Module):
             return (None, loss1, None)
 
         loss2 = self.nll_loss(lid_logits, lid_targets)
+
         total_loss = self.ctc_loss_weight * loss1 + loss2
         return (total_loss, loss1, loss2)
 
-    def evaluate(self, lid_logits, lid_targets):
-        _, pred = lid_logits.max(dim=1)
-        correct = pred.eq(lid_targets).float()
+    def evaluate(self, logits, targets):
+        _, pred = logits.max(dim=1)
+        correct = pred.eq(targets).float()
         acc = correct.sum().item() 
         return (pred, acc)
 

@@ -94,6 +94,9 @@ class Options_Parser:
             '--bidirectional', dest='bidirectional', action='store_true',
             help='If True, use a bidirectional recurrent layer.')
         self.parser.add_argument(
+            '--dropout-rate', dest='dropout_rate', type=float, default=0.1,
+            help="The dropout rate for lstm_layers' output.")
+        self.parser.add_argument(
             '--bn-size', dest='bn_size', type=int, default=256,
             help='The size of bottleneck representation.')
         self.parser.add_argument(
@@ -123,6 +126,12 @@ class Options_Parser:
             "--pretrain-ctc-epochs", dest="pretrain_ctc_epochs", type=int, default=0,
             help="The number of epochs to pre-train CTC model.")
         self.parser.add_argument(
+            '--freeze-parameters', dest='freeze_parameters', action='store_true',
+            help='If True, freeze the pre-trained parameters.')
+        self.parser.add_argument(
+            '--restore-from-ckpt', dest='restore_from_ckpt', action='store_true',
+            help='If True, restore the model from a checkpont file.')
+        self.parser.add_argument(
             "--log-file", dest="log_file", type=str, default="",
             help="The path of logging file for the running job.")
 
@@ -135,13 +144,24 @@ class Options_Parser:
             mode = 'test'
         elif config.do_predict:
             mode = 'predict'
+
         config.pretrain_ctc_model = config.pretrain_ctc_epochs > 0
-        config.ckpt_dir = config.ckpt_dir.rstrip('/')
         timestamp = time.strftime("%m%d-%H%M%S", time.localtime())
+        config.ckpt_dir = config.ckpt_dir.rstrip('/')
         if config.do_train and os.path.basename(config.ckpt_dir) == 'ckpt':
             config.ckpt_dir = os.path.join(config.ckpt_dir, "job_%s_ctc_lid_%s" % (mode, timestamp))
+
         if len(mode) > 0 and len(config.log_file) == 0:
             config.log_file = "./log/job_%s_ctc_lid_%s.log.txt" % (mode, timestamp)
+
+        if config.restore_from_ckpt or config.do_eval or config.do_predict:
+            assert os.path.isfile(config.ckpt) and os.path.exists(config.ckpt)
+
+        if config.freeze_parameters:
+            config.ctc_loss_weight = 0.0
+
+        if config.do_eval or config.do_predict:
+            config.dropout_rate = 0
         return config
 
 

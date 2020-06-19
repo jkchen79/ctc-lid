@@ -17,7 +17,7 @@ An CTC-training based model for language identification.
  
 ### 模型结构
 
-以LSTM层提取帧级别的特征，经过含非线性层的前向网络（FFN)得到bottleneck特征，输出层分为CTC预测与语种类别预测。
+以LSTM层提取帧级别的特征，经过含非线性层的前向网络（FFN)得到bottleneck特征，输出层分为CTC音素预测与语种类别预测。
 
 ### 语种识别结果对比
 

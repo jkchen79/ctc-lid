@@ -290,8 +290,8 @@ def data_loader_debugging(utt2npy, utt2target=None, targets_list=None,
     dataset_size = data_loader.get_dataset_size()
     print('dataset_size: ', dataset_size)
 
-    n_batches = int(dataset_size / batch_size)
-    print("n_batches: ", n_batches)
+    num_batchs = int(dataset_size / batch_size)
+    print("num_batchs: ", n_batchs)
 
     start = time.process_time()
 
@@ -299,38 +299,38 @@ def data_loader_debugging(utt2npy, utt2target=None, targets_list=None,
         for k, v in batch.items():
             print(k, type(v), v.shape)
         print("")
-        #  if i + 1 == 10:
-        #      break
-    print("got n_batches: ", i + 1)
+        if i + 1 == 10:
+            break
+    print("got num_batchs: ", i + 1)
     print("time elapsed: ", time.process_time() - start)
 
 
 if __name__ == "__main__": 
     utt2npy = '../data/dev_utt2npy'
     utt2lang = '../data/dev_lang_label.txt'
-    utt2phone_seq = '../data/dev_utt2mlf'
+    utt2phones_seq = '../data/dev_utt2phones_seq'
     languages = '../data/lang.list.txt'
     phones_list = '../data/phones.list.txt'
 
-    # In the training stage, generate mini-batches data.
-    #  print("variable length batch")
-    #  data_loader_debugging(utt2npy, utt2lang, targets_list=languages, batch_size=4,
-    #                    fixed_len=0, num_workers=4, training=True, shuffle=False)
-    #  print('-----' * 20)
-    #
-    #  print("truncate fixed length batch")
-    #  data_loader_debugging(utt2npy, utt2lang, languages, batch_size=4,
-    #                    fixed_len=1024, num_workers=4, training=True, shuffle=True)
-    #  print('-----' * 20)
-    #
-    #  print("test mode")
-    #  # In the test stage, one sample per test case
-    #  data_loader_debugging(utt2npy, utt2lang, languages, batch_size=1,
-    #                    num_workers=4, training=False)
-    #  print('-----' * 20)
-    #
+    In the training stage, generate mini-batches data.
+    print("variable length batch")
+    data_loader_debugging(utt2npy, utt2lang, targets_list=languages, batch_size=64,
+                      fixed_len=0, num_workers=4, training=True, shuffle=False)
+    print('-----' * 20)
+
+    print("truncate fixed length batch")
+    data_loader_debugging(utt2npy, utt2lang, languages, batch_size=64,
+                      fixed_len=1024, num_workers=4, training=True, shuffle=True)
+    print('-----' * 20)
+
+    print("test mode")
+    # In the test stage, one sample per test case
+    data_loader_debugging(utt2npy, utt2lang, languages, batch_size=1,
+                      num_workers=4, training=False)
+    print('-----' * 20)
+
     print("prepare phones sequences for ctc")
     data_loader_debugging(utt2npy, utt2lang, languages, batch_size=64,
-                          utt2label_seq=utt2phone_seq, labels_list=phones_list,
+                          utt2label_seq=utt2phones_seq, labels_list=phones_list,
                           num_workers=1, training=True, padding_batch=True)
 

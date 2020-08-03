@@ -13,7 +13,7 @@ A CTC-training based model for language identification.
 
 ### 特征提取与VAD
 
- 用kaldi提取fbank特征，提取mfcc特征并计算VAD，然后去除fbank特征中的静音帧。当然也可以用torchaudio提取声学特征。
+ 用kaldi提取fbank特征，提取能量并计算VAD，然后去除fbank特征中的静音帧。当然也可以用torchaudio提取声学特征。
  
 ### 模型结构
 

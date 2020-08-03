@@ -73,8 +73,8 @@ def do_evaluation(model, dataloader, logger, pretrain_ctc_model=False):
             logger.info("dev batch %d, ctc_loss %.6f" % (i, loss))
         else:
             pred, acc = model.module.evaluate(lid_logits, lid_targets)
-            for u, t, p in zip(utt, lid_targets.cpu().numpy(), pred.cpu().numpy()):
-                logger.info(" ".join((u, int2target[t], int2target[p])))
+            #  for u, t, p in zip(utt, lid_targets.cpu().numpy(), pred.cpu().numpy()):
+            #      logger.info(" ".join((u, int2target[t], int2target[p])))
             correct_cnt += acc 
 
     acc_rate = float(correct_cnt) / num_samples
@@ -178,6 +178,7 @@ def train_epochs(model, config, pretrain_ctc_model=False):
 
             # Forward + Backward + Optimize
             ctc_logits, lid_logits = model(feats, mask)
+            lengths = torch.sum(mask[:, ::4], 1, dtype=torch.int64)
 
             optimizer.zero_grad()
             if pretrain_ctc_model:
@@ -196,6 +197,7 @@ def train_epochs(model, config, pretrain_ctc_model=False):
                         "LIDLoss: %.4f, Length [%d]" % (epoch, num_epochs, i, num_batchs, 
                                                 loss.data, l1.data, l2.data, feats.size()[1]))
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             optimizer.step()
 
         if pretrain_ctc_model:
@@ -234,7 +236,7 @@ def train(config, logger):
 
     if config.freeze_parameters:
         for name, param in model.named_parameters():
-            if "lstm_layers" in name or "ffn_layers" in name:
+            if "front" in name:
                 logger.info("freeze parameter: %s, size of %s" % (name, str(param.size())))
                 param.requires_grad = False
 

@@ -148,7 +148,7 @@ class SpeechDataLoader(DataLoader):
                  utt2label_seq=None, labels_list=None, batch_size=1,
                  num_workers=1, training=True, shuffle=True,
                  fixed_len=0, truncated_min_len=200, truncated_max_len=1024,
-                 padding_batch=False):
+                 padding_batch=False, feat_len_scale=1):
         self.utt2npy = utt2npy
         self.utt2target = utt2target
         self.targets_list = targets_list
@@ -161,6 +161,7 @@ class SpeechDataLoader(DataLoader):
         self.fixed_len = fixed_len
         self.truncated_range = (truncated_min_len, truncated_max_len)
         self.padding_batch = padding_batch
+        self.feat_len_scale = feat_len_scale
 
         self.dataset = None
         self.dataset_size = 0
@@ -182,16 +183,22 @@ class SpeechDataLoader(DataLoader):
         label_seqs = []
         label_seq_lengths = []
         for sample in batch:
+            feat = torch.from_numpy(sample["feature"])
+            label_seq = sample.get("label_seq", None)
+            if label_seq is not None: 
+                if feat.shape[0] < label_seq.shape[0] * self.feat_len_scale:
+                    # discard the bad sample 
+                    continue
             utts.append(sample["utt"])
-            feats.append(torch.from_numpy(sample["feature"]))
+            feats.append(feat)
             targets.append(sample["target"])
             lengths.append(sample["length"])
-            label_seq = sample.get("label_seq", None)
             if label_seq is not None:
                 label_seqs.append(torch.from_numpy(label_seq))
                 label_seq_lengths.append(sample["label_seq_length"])
 
-        mask = torch.zeros((len(batch), max(lengths)))
+        assert len(utts) > 0, "Too many bad samples result in an empty batch!!!" 
+        mask = torch.zeros((len(utts), max(lengths)))
         for i, l in enumerate(lengths):
             mask[i, :l] = 1
 
@@ -278,20 +285,22 @@ class SpeechDataLoader(DataLoader):
 def data_loader_debugging(utt2npy, utt2target=None, targets_list=None,
                           utt2label_seq=None, labels_list=None,
                           batch_size=64, fixed_len=0, num_workers=4, 
-                          training=True, shuffle=True, padding_batch=False):
+                          training=True, shuffle=True, padding_batch=False,
+                          feat_len_scale=1):
 
     data_loader = SpeechDataLoader(utt2npy, utt2target, targets_list, 
                                    utt2label_seq, labels_list,
                                    batch_size=batch_size, fixed_len=fixed_len, 
                                    num_workers=num_workers, training=training,
-                                   shuffle=shuffle, padding_batch=padding_batch
+                                   shuffle=shuffle, padding_batch=padding_batch,
+                                   feat_len_scale=feat_len_scale,
                                    )
 
     dataset_size = data_loader.get_dataset_size()
     print('dataset_size: ', dataset_size)
 
     num_batchs = int(dataset_size / batch_size)
-    print("num_batchs: ", n_batchs)
+    print("num_batchs: ", num_batchs)
 
     start = time.process_time()
 
@@ -307,12 +316,12 @@ def data_loader_debugging(utt2npy, utt2target=None, targets_list=None,
 
 if __name__ == "__main__": 
     utt2npy = '../data/dev_utt2npy'
-    utt2lang = '../data/dev_lang_label.txt'
+    utt2lang = '../data/dev_utt2lang'
     utt2phones_seq = '../data/dev_utt2phones_seq'
     languages = '../data/lang.list.txt'
     phones_list = '../data/phones.list.txt'
 
-    In the training stage, generate mini-batches data.
+    # In the training stage, generate mini-batches data.
     print("variable length batch")
     data_loader_debugging(utt2npy, utt2lang, targets_list=languages, batch_size=64,
                       fixed_len=0, num_workers=4, training=True, shuffle=False)
@@ -332,5 +341,5 @@ if __name__ == "__main__":
     print("prepare phones sequences for ctc")
     data_loader_debugging(utt2npy, utt2lang, languages, batch_size=64,
                           utt2label_seq=utt2phones_seq, labels_list=phones_list,
-                          num_workers=1, training=True, padding_batch=True)
+                          num_workers=1, training=True, padding_batch=True, feat_len_scale=4)
 

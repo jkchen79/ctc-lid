@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-# Copyright 2018  Sun Yat-sen University (author: Jinkun Chen)
 
 import sys
 import argparse
@@ -148,6 +147,8 @@ class Options_Parser:
         config.pretrain_ctc_model = config.pretrain_ctc_epochs > 0
         timestamp = time.strftime("%m%d-%H%M%S", time.localtime())
         config.ckpt_dir = config.ckpt_dir.rstrip('/')
+        if not config.do_train:
+            config.dropout_rate = 0
         if config.do_train and os.path.basename(config.ckpt_dir) == 'ckpt':
             config.ckpt_dir = os.path.join(config.ckpt_dir, "job_%s_ctc_lid_%s" % (mode, timestamp))
 

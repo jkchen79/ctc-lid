@@ -12,6 +12,7 @@ import numpy as np
 import random
 from collections import OrderedDict
 
+from resnet import ResNet, ResidualBlock
 
 class CTC_LID_Model(nn.Module):
 
@@ -28,48 +29,66 @@ class CTC_LID_Model(nn.Module):
         self.ctc_loss = nn.CTCLoss()
         self.nll_loss = nn.CrossEntropyLoss()
 
-        self.lstm_layers = nn.LSTM(self.input_size, self.hidden_size, 
+        self.front_net = nn.Sequential()
+
+        resnet18 = ResNet(ResidualBlock, [2, 2, 2, 2], [1, 1, 2, 2])
+        self.front_net.add_module('resnet18', resnet18)
+        front_output_size = 1280
+
+        self.lstm_layers_for_ctc = nn.LSTM(front_output_size, self.hidden_size, 
                                    num_layers=config.num_rnn_layers, 
                                    batch_first=True, 
                                    bidirectional=config.bidirectional
                                    )
-        self.lstm_layers.flatten_parameters()
+        self.lstm_layers_for_ctc.flatten_parameters()
 
-        lstm_output_size = self.hidden_size
+        self.lstm_layers_for_lid = nn.LSTM(front_output_size, self.hidden_size, 
+                                   num_layers=config.num_rnn_layers, 
+                                   batch_first=True, 
+                                   bidirectional=config.bidirectional
+                                   )
+        self.lstm_layers_for_lid.flatten_parameters()
+
+        lstm_output_size = self.config.hidden_size
         if config.bidirectional:
             lstm_output_size *= 2
-        
-        self.dropout = nn.Dropout(p=config.dropout_rate)
 
+        #  self.dropout = nn.Dropout(p=config.dropout_rate)
         # feed forward layers for bottleneck feature
-        self.ffn_layers = nn.Sequential()
-        self.ffn_layers.add_module('linear_layer_0', nn.Linear(lstm_output_size, self.bn_size))
-        self.ffn_layers.add_module('prelu', nn.PReLU())
-        self.ffn_layers.add_module('linear_layer_1', nn.Linear(self.bn_size, self.bn_size))
 
-        self.output_layer_for_ctc = nn.Linear(self.bn_size, self.num_ctc_classes)
-        self.output_layer_for_lid = nn.Linear(self.bn_size, self.output_size)
+        self.ffn_layers_for_ctc = nn.Sequential()
+        self.ffn_layers_for_ctc.add_module('linear_layer_0', nn.Linear(lstm_output_size, self.bn_size))
+        self.ffn_layers_for_ctc.add_module('prelu', nn.PReLU())
+        self.ffn_layers_for_ctc.add_module('linear_layer_1', nn.Linear(self.bn_size, self.num_ctc_classes))
+
+        self.ffn_layers_for_lid = nn.Sequential()
+        self.ffn_layers_for_lid.add_module('linear_layer_0', nn.Linear(lstm_output_size, self.bn_size))
+        self.ffn_layers_for_lid.add_module('prelu', nn.PReLU())
+        self.ffn_layers_for_lid.add_module('linear_layer_1', nn.Linear(self.bn_size, self.output_size))
 
         self.model = None
         self.use_cuda = use_cuda
 
     def forward(self, feats, mask):
         batch_size, length, feat_dim = feats.size()
-
-        lstm_output, last_hidden_status = self.lstm_layers(feats)
-
-        if self.config.do_train:
-            lstm_output = self.dropout(lstm_output)
-
-        bn_embd = self.ffn_layers(lstm_output)
+        # for CNN, reshape the feats to shape of (batch_size, channel, length, width), channel == 1.
+        feats = torch.unsqueeze(feats, 1)
+        front_output = self.front_net(feats)
+        front_output = torch.transpose(front_output, 1, 2)
+        shape = front_output.shape
+        # reshape the CNN output to shape of (batch_size, length_out, channel_out x width_out).
+        front_output = front_output.contiguous().view(shape[0], shape[1], -1)
+        mask = mask[:, ::4]
 
         if self.config.do_train or self.config.pretrain_ctc_model:
-            ctc_logits = self.output_layer_for_ctc(bn_embd) 
+            lstm_output_ctc, _ = self.lstm_layers_for_ctc(front_output)
+            ctc_logits = self.ffn_layers_for_ctc(lstm_output_ctc) 
         else:
             ctc_logits = None
 
-        lid_logits = self.output_layer_for_lid(bn_embd)
-        mask = mask.contiguous().view(batch_size, length, -1).expand(batch_size, length, lid_logits.size(2))
+        lstm_output_lid, _ = self.lstm_layers_for_lid(front_output)
+        lid_logits = self.ffn_layers_for_lid(lstm_output_lid)
+        mask = mask.unsqueeze(2)
         lid_logits = lid_logits * mask
         lid_logits = lid_logits.sum(dim=1) / mask.sum(dim=1)
         
